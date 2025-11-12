@@ -20,7 +20,7 @@ const FormInput = ({ id, label, type = 'text', placeholder }) => (
 );
 
 const SignUpPage = ({ onNavigate, onLogin }) => {
-    const [userType, setUserType] = useState('mentee');
+    const [userType, setUserType] = useState('tutor');
     const [studentCard, setStudentCard] = useState(null);
 
     const handleSubmit = (e) => {
@@ -46,21 +46,29 @@ const SignUpPage = ({ onNavigate, onLogin }) => {
                     <FormInput id="email" label="Alamat Email*" type="email" placeholder="email@janesfakedomain.net" />
                     <FormInput id="password" label="Kata Sandi*" type="password" placeholder="Buat kata sandi" />
 
-                    {userType === 'mentee' && (
-                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Kartu Mahasiswa (Opsional)
-                            </label>
-                            <label htmlFor="studentCard" className="relative cursor-pointer bg-white rounded-md font-medium text-fuchsia-600 hover:text-fuchsia-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-fuchsia-500 border-2 border-gray-300 border-dashed rounded-lg p-4 flex flex-col items-center justify-center w-full transition hover:border-fuchsia-400">
-                                <UploadIcon className="w-8 h-8 text-gray-400 mb-1" />
-                                <span className="text-sm text-center">
-                                    {studentCard ? `File: ${studentCard.name}` : 'Unggah foto atau PDF'}
-                                </span>
-                                <input id="studentCard" name="studentCard" type="file" onChange={(e) => setStudentCard(e.target.files ? e.target.files[0] : null)} className="sr-only" accept="image/*,application/pdf" />
-                            </label>
-                            <p className="text-xs text-gray-500 mt-1">Untuk verifikasi status siswa Anda.</p>
-                        </div>
-                    )}
+                    
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Kartu Mahasiswa {userType === 'tutor' ? '(Wajib)' : '(Wajib)'}
+                        </label>
+                        <label htmlFor="studentCard" className="relative cursor-pointer bg-white rounded-md font-medium text-fuchsia-600 hover:text-fuchsia-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-fuchsia-500 border-2 border-gray-300 border-dashed rounded-lg p-4 flex flex-col items-center justify-center w-full transition hover:border-fuchsia-400">
+                            <UploadIcon className="w-8 h-8 text-gray-400 mb-1" />
+                            <span className="text-sm text-center">
+                                {studentCard ? `File: ${studentCard.name}` : 'Unggah foto atau PDF'}
+                            </span>
+                            <input 
+                                id="studentCard" 
+                                name="studentCard" 
+                                type="file" 
+                                onChange={(e) => setStudentCard(e.target.files ? e.target.files[0] : null)} 
+                                className="sr-only" 
+                                accept="image/*,application/pdf"
+                                required={userType === 'tutor'}
+                             />
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">{userType === 'tutor' ? 'Wajib untuk verifikasi pendaftaran tutor.' : 'Untuk verifikasi status siswa Anda.'}</p>
+                    </div>
+                    
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Anda seorang siswa atau tutor?</label>
