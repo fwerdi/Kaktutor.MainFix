@@ -1,6 +1,5 @@
 
 
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
     DashboardIcon, ChatIcon, ReceiptIcon, SettingsIcon, HelpIcon,
@@ -9,6 +8,126 @@ import {
     CrownIcon, BellIcon, CheckCircleIcon, BankIcon,
     HomeIcon, MailIcon, GithubIcon
 } from '../components/Icons';
+
+
+// --- New Components for Withdrawal Feature ---
+const WithdrawSuccessNotification = ({ show, onClose }) => {
+    useEffect(() => {
+        if (show) {
+            const timer = setTimeout(() => {
+                onClose();
+            }, 3000); // Hide after 3 seconds
+            return () => clearTimeout(timer);
+        }
+    }, [show, onClose]);
+
+    if (!show) return null;
+
+    return (
+        <div className="fixed top-28 right-8 bg-green-500 text-white py-3 px-6 rounded-lg shadow-xl z-50 animate-fade-in-down">
+            <div className="flex items-center gap-3">
+                <CheckCircleIcon className="w-6 h-6" />
+                <div>
+                    <p className="font-bold">Penarikan Berhasil!</p>
+                    <p className="text-sm">Dana akan dikirim dalam 1x24 jam.</p>
+                </div>
+            </div>
+            <style>{`
+                @keyframes fadeInDown {
+                    from { opacity: 0; transform: translateY(-20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in-down { animation: fadeInDown 0.5s ease-out forwards; }
+            `}</style>
+        </div>
+    );
+};
+
+const WithdrawModal = ({ isOpen, onClose, maxAmount, onConfirm }) => {
+    const [amount, setAmount] = useState(0);
+    const [bank, setBank] = useState('');
+    const [accountNumber, setAccountNumber] = useState('');
+    const modalRef = useRef(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            setAmount(0); // Reset form when modal opens
+            setBank('');
+            setAccountNumber('');
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+                onClose();
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [onClose]);
+    
+    if (!isOpen) return null;
+
+    const isConfirmDisabled = amount === 0 || !bank || !accountNumber.trim();
+    const sliderPercentage = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in" style={{ animationDuration: '0.2s' }}>
+            <div ref={modalRef} className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Tarik Pendapatan</h2>
+                <div className="space-y-4">
+                    <div>
+                        <label htmlFor="bank-select" className="block text-sm font-medium text-gray-700">Pilih Bank</label>
+                        <select id="bank-select" value={bank} onChange={(e) => setBank(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm rounded-md">
+                            <option value="">-- Pilih Bank Tujuan --</option>
+                            <option>Bank Central Asia (BCA)</option>
+                            <option>Bank Mandiri</option>
+                            <option>Bank Negara Indonesia (BNI)</option>
+                            <option>Bank Rakyat Indonesia (BRI)</option>
+                            <option>CIMB Niaga</option>
+                        </select>
+                    </div>
+                     <div>
+                        <label htmlFor="account-number" className="block text-sm font-medium text-gray-700">Nomor Rekening</label>
+                        <input type="number" id="account-number" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="Masukkan nomor rekening" className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm rounded-md" />
+                    </div>
+                    <div>
+                        <label htmlFor="amount-slider" className="block text-sm font-medium text-gray-700">Jumlah Penarikan</label>
+                        <div className="flex items-center gap-4 mt-2">
+                            <input
+                                id="amount-slider"
+                                type="range"
+                                min="0"
+                                max={maxAmount}
+                                value={amount}
+                                onChange={(e) => setAmount(Number(e.target.value))}
+                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-slider"
+                                style={{
+                                    '--slider-percentage': `${sliderPercentage}%`
+                                } as React.CSSProperties}
+                            />
+                            <span className="font-bold text-lg text-teal-700 w-40 text-right">Rp {amount.toLocaleString('id-ID')}</span>
+                        </div>
+                         <style>{`
+                            .range-slider { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; background: #e5e7eb; outline: none; }
+                            .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #14B8A6; cursor: pointer; }
+                            .range-slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #14B8A6; cursor: pointer; }
+                            .range-slider { background: linear-gradient(to right, #14B8A6 0%, #14B8A6 var(--slider-percentage), #e5e7eb var(--slider-percentage), #e5e7eb 100%); }
+                        `}</style>
+                        <p className="text-xs text-gray-500 mt-1 text-right">Saldo Tersedia: Rp {maxAmount.toLocaleString('id-ID')}</p>
+                    </div>
+                </div>
+                 <div className="flex justify-end gap-2 mt-6">
+                    <button onClick={onClose} className="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors">Batal</button>
+                    <button onClick={() => onConfirm({ amount, bank, accountNumber })} disabled={isConfirmDisabled} className="px-4 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors disabled:bg-teal-300 disabled:cursor-not-allowed">
+                        Konfirmasi Penarikan
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 
 // --- Shared Header Components ---
@@ -177,7 +296,6 @@ const TutorSidebar = ({ onNavigate, view, setView }) => {
                 <NavLink icon={<CheckBadgeIcon className="w-5 h-5" />} text="Riwayat Kelas" viewName="history" />
                 <NavLink icon={<UsersIcon className="w-5 h-5" />} text="Permintaan Siswa" viewName="requests" />
                 <NavLink icon={<ReceiptIcon className="w-5 h-5" />} text="Pendapatan" viewName="earnings" />
-                <NavLink icon={<CrownIcon className="w-5 h-5" />} text="Peringkat" viewName="leaderboard" />
                 <NavLink icon={<ChatIcon className="w-5 h-5" />} text="Pesan" page="chat" />
             </nav>
             <div className="mt-auto space-y-1">
@@ -213,9 +331,7 @@ const ContentHeader = ({ setView }) => {
     );
 };
 
-// FIX: Add explicit props type using React.FC to solve for the 'key' prop error during list rendering.
 const StatCard: React.FC<{
-    // FIX: Specify that the icon prop is a ReactElement that accepts a className prop to fix cloneElement typing error.
     icon: React.ReactElement<{ className?: string }>;
     value: string;
     title: string;
@@ -312,7 +428,7 @@ const StudentRequests = ({ requests, onAccept, onDecline }) => {
     );
 };
 
-const EarningsView = ({ earnings }) => {
+const EarningsView = ({ earnings, onOpenWithdrawModal }) => {
     return (
         <div className="bg-white/70 backdrop-blur-sm p-6 rounded-lg shadow-sm border border-gray-200/50 animate-fade-in">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Ringkasan Pendapatan</h2>
@@ -322,9 +438,14 @@ const EarningsView = ({ earnings }) => {
                     <p className="text-3xl font-bold text-teal-900">Rp {earnings.monthly.toLocaleString('id-ID')}</p>
                 </div>
                 <div className="p-4 bg-purple-50 rounded-lg">
-                    <p className="text-sm text-purple-800 font-semibold">Total Pendapatan</p>
+                    <p className="text-sm text-purple-800 font-semibold">Total Saldo Tersedia</p>
                     <p className="text-3xl font-bold text-purple-900">Rp {earnings.total.toLocaleString('id-ID')}</p>
                 </div>
+            </div>
+             <div className="text-center mb-6">
+                 <button onClick={onOpenWithdrawModal} className="px-6 py-3 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition-colors shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Tarik Dana
+                </button>
             </div>
             <h3 className="text-lg font-bold text-gray-800 mb-3">Riwayat Transaksi</h3>
              <div className="overflow-x-auto">
@@ -375,86 +496,181 @@ const TutorSettingsView = () => (
 );
 
 
-const ScheduleView = ({ schedule, onAddAvailability, onRemoveAvailability }) => {
-    const [day, setDay] = useState('');
-    const [startTime, setStartTime] = useState('');
-    const [endTime, setEndTime] = useState('');
+const TutorClassHistoryView = ({ history }) => (
+    <div className="bg-white/70 backdrop-blur-sm p-6 rounded-lg shadow-sm border border-gray-200/50 animate-fade-in">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Riwayat Kelas</h2>
+        <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+                <thead className="text-gray-500">
+                    <tr>
+                        <th className="p-3 font-medium">Tanggal</th>
+                        <th className="p-3 font-medium">Siswa</th>
+                        <th className="p-3 font-medium">Kelas</th>
+                        <th className="p-3 font-medium text-right">Pendapatan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {history.map((item) => (
+                        <tr key={item.id} className="border-t border-gray-200/80">
+                            <td className="p-3 text-gray-600">{item.date}</td>
+                            <td className="p-3 font-semibold text-gray-800">{item.student}</td>
+                            <td className="p-3 text-gray-600">{item.class}</td>
+                            <td className="p-3 text-right font-semibold text-green-700">Rp {item.earnings.toLocaleString('id-ID')}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    </div>
+);
 
-    const handleAdd = () => {
-        if (day && startTime && endTime) {
-            onAddAvailability({ day, startTime, endTime });
-            setDay(''); setStartTime(''); setEndTime('');
-        }
+const AddClassModal = ({ isOpen, onClose, onAdd, selectedDate }) => {
+    const [classData, setClassData] = useState({
+        subject: '',
+        startTime: '09:00',
+        endTime: '10:00',
+        mode: 'Online',
+        location: ''
+    });
+    const modalRef = useRef(null);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleClickOutside = (event) => {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+                onClose();
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [isOpen, onClose]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setClassData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onAdd({ ...classData, date: selectedDate });
+        onClose();
+    };
+
+    if (!isOpen) return null;
+
     return (
-        <div className="space-y-6 animate-fade-in">
-            <div className="p-6 border border-gray-200 rounded-lg bg-white/70">
-                <h3 className="font-semibold text-lg text-gray-800 mb-4">Tambah Ketersediaan</h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <div className="md:col-span-1">
-                        <label htmlFor="day" className="block text-sm font-medium text-gray-700">Hari</label>
-                        <select id="day" value={day} onChange={(e) => setDay(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm rounded-md">
-                            <option value="">Pilih Hari</option>
-                            <option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Minggu</option>
-                        </select>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in" style={{ animationDuration: '0.2s' }}>
+            <div ref={modalRef} className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Tambah Jadwal Kelas Baru</h2>
+                <p className="text-gray-600 mb-4">Untuk tanggal: <span className="font-semibold">{selectedDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}</span></p>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Mata Pelajaran</label>
+                        <input name="subject" value={classData.subject} onChange={handleChange} required className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder="e.g., Aljabar Linear" />
                     </div>
-                     <div className="md:col-span-1">
-                        <label htmlFor="start-time" className="block text-sm font-medium text-gray-700">Jam Mulai</label>
-                        <input type="time" id="start-time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm rounded-md" />
-                    </div>
-                     <div className="md:col-span-1">
-                        <label htmlFor="end-time" className="block text-sm font-medium text-gray-700">Jam Selesai</label>
-                        <input type="time" id="end-time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm rounded-md" />
-                    </div>
-                    <button onClick={handleAdd} className="w-full px-4 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors">Tambah</button>
-                </div>
-            </div>
-             <div className="p-6 border border-gray-200 rounded-lg bg-white/70">
-                <h3 className="font-semibold text-lg text-gray-800 mb-4">Jadwal Anda Saat Ini</h3>
-                <div className="space-y-3">
-                    {schedule.map((slot, index) => (
-                        <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                            <div>
-                                <p className="font-semibold text-gray-800">{slot.day}</p>
-                                <p className="text-sm text-gray-600">{slot.startTime} - {slot.endTime}</p>
-                            </div>
-                            <button onClick={() => onRemoveAvailability(index)} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-100 rounded-full transition-colors"><TrashIcon className="w-5 h-5"/></button>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Jam Mulai</label>
+                            <input type="time" name="startTime" value={classData.startTime} onChange={handleChange} required className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" />
                         </div>
-                    ))}
-                </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Jam Selesai</label>
+                            <input type="time" name="endTime" value={classData.endTime} onChange={handleChange} required className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Mode</label>
+                        <div className="flex gap-4 mt-1">
+                            <label className="flex items-center cursor-pointer">
+                                <input type="radio" name="mode" value="Online" checked={classData.mode === 'Online'} onChange={handleChange} className="mr-2" />
+                                <span className="text-sm font-medium text-gray-700">Online</span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                                <input type="radio" name="mode" value="Offline" checked={classData.mode === 'Offline'} onChange={handleChange} className="mr-2" />
+                                <span className="text-sm font-medium text-gray-700">Offline</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">{classData.mode === 'Online' ? 'Tautan Meeting' : 'Lokasi'}</label>
+                        <input name="location" value={classData.location} onChange={handleChange} required className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" placeholder={classData.mode === 'Online' ? 'https://zoom.us/j/...' : 'Gedung A, Ruang 101'} />
+                    </div>
+                    <div className="flex justify-end gap-2 pt-4">
+                        <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 font-semibold rounded-lg hover:bg-gray-300">Batal</button>
+                        <button type="submit" className="px-4 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700">Tambah Kelas</button>
+                    </div>
+                </form>
             </div>
         </div>
     );
 };
 
-const Footer = () => (
-    <footer className="bg-gray-50/50 text-gray-600 py-16 px-8 border-t mt-8">
-        <div className="container mx-auto grid grid-cols-1 md:grid-cols-6 gap-8">
-            <div className="md:col-span-2">
-                <h3 className="text-2xl font-bold text-gray-900">Kak Tutor</h3>
-                <p className="mt-2 text-sm">Platform les privat terdepan untuk semua jenjang pendidikan.</p>
-                <div className="flex gap-4 mt-4">
-                    <a href="#" className="hover:text-purple-600"><HomeIcon className="w-5 h-5"/></a>
-                    <a href="#" className="hover:text-purple-600"><MailIcon className="w-5 h-5"/></a>
-                    <a href="#" className="hover:text-purple-600"><GithubIcon className="w-5 h-5"/></a>
+const ScheduleCalendarView = ({ events, onDayClick }) => {
+    const [currentDate, setCurrentDate] = useState(new Date("2025-11-01"));
+
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const startDay = startOfMonth.getDay(); // Sunday is 0, Monday is 1, etc.
+    const daysInMonth = endOfMonth.getDate();
+
+    const calendarDays = [];
+    // Adjust for starting the week on Monday (Senin)
+    const startingDayIndex = startDay === 0 ? 6 : startDay - 1; 
+
+    for (let i = 0; i < startingDayIndex; i++) { calendarDays.push(null); }
+    for (let i = 1; i <= daysInMonth; i++) { calendarDays.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), i)); }
+
+    const changeMonth = (offset) => {
+        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1));
+    };
+
+    const eventsByDate = events.reduce((acc, event) => {
+        const dateStr = new Date(event.date).toISOString().split('T')[0];
+        if (!acc[dateStr]) acc[dateStr] = [];
+        acc[dateStr].push(event);
+        return acc;
+    }, {});
+
+    return (
+        <div className="p-6 border border-gray-200 rounded-lg bg-white/70 animate-fade-in">
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">
+                    {currentDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                </h2>
+                <div className="flex gap-2">
+                    <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-gray-200 transition-colors">&lt;</button>
+                    <button onClick={() => changeMonth(1)} className="p-2 rounded-full hover:bg-gray-200 transition-colors">&gt;</button>
                 </div>
             </div>
-            <div>
-                <h4 className="font-bold mb-4 text-gray-900">Perusahaan</h4>
-                <ul className="space-y-2 text-sm"><li><a href="#" className="hover:underline">Tentang Kami</a></li><li><a href="#" className="hover:underline">Karier</a></li></ul>
-            </div>
-            <div>
-                <h4 className="font-bold mb-4 text-gray-900">Legal</h4>
-                <ul className="space-y-2 text-sm"><li><a href="#" className="hover:underline">Kontak</a></li><li><a href="#" className="hover:underline">Ketentuan Layanan</a></li></ul>
-            </div>
-            <div>
-                <h4 className="font-bold mb-4 text-gray-900">Dukungan</h4>
-                <ul className="space-y-2 text-sm"><li><a href="#" className="hover:underline">Pusat Bantuan</a></li><li><a href="#" className="hover:underline">FAQ</a></li></ul>
+            <div className="grid grid-cols-7 gap-1 text-center">
+                {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(day => (
+                    <div key={day} className="font-semibold text-gray-500 pb-2 text-sm">{day}</div>
+                ))}
+                {calendarDays.map((day, index) => {
+                    const dayStr = day ? day.toISOString().split('T')[0] : '';
+                    const dayEvents = day ? eventsByDate[dayStr] || [] : [];
+                    const isToday = day && day.toDateString() === new Date().toDateString();
+                    return (
+                        <div key={index} onClick={() => day && onDayClick(day)} className="h-28 border border-gray-100 rounded-md p-1.5 flex flex-col cursor-pointer hover:bg-gray-50 transition-colors">
+                            {day ? (
+                                <>
+                                    <span className={`text-sm self-start font-medium ${isToday ? 'bg-teal-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold' : 'text-gray-600'}`}>{day.getDate()}</span>
+                                    <div className="mt-1 space-y-1 overflow-y-auto text-left">
+                                        {dayEvents.map(event => (
+                                            <div key={event.id} className="bg-teal-100 text-teal-800 rounded px-1.5 py-0.5 text-xs truncate">
+                                                {event.startTime} {event.subject}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : null}
+                        </div>
+                    );
+                })}
             </div>
         </div>
-    </footer>
-);
+    );
+};
 
 
 // --- TutorDashboardPage ---
@@ -464,20 +680,56 @@ const TutorDashboardPage = ({ onNavigate, isLoggedIn, onLogout, activePage }) =>
         { id: 1, name: 'Citra Lestari', imgSrc: 'https://i.pravatar.cc/40?u=citra', class: 'Dasar Pemrograman', day: 'Jumat', startTime: '13:00', message: 'Halo kak, saya ingin booking untuk sesi ini. Terima kasih!', status: 'Pending' },
         { id: 2, name: 'Budi Santoso', imgSrc: 'https://i.pravatar.cc/40?u=budi', class: 'Aljabar Linear', day: 'Sabtu', startTime: '10:00', message: 'Permisi kak, apakah slot ini masih tersedia?', status: 'Pending' }
     ]);
-     const [schedule, setSchedule] = useState([
-        { day: 'Senin', startTime: '09:00', endTime: '11:00' },
-        { day: 'Rabu', startTime: '14:00', endTime: '16:00' },
-        { day: 'Jumat', startTime: '10:00', endTime: '12:00' },
-    ]);
-
-    const handleAddAvailability = useCallback((newSlot) => {
-        setSchedule(prev => [...prev, newSlot].sort((a, b) => ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].indexOf(a.day) - ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].indexOf(b.day)));
-    }, []);
-
-    const handleRemoveAvailability = useCallback((indexToRemove) => {
-        setSchedule(prev => prev.filter((_, index) => index !== indexToRemove));
-    }, []);
+    const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+    const [showWithdrawSuccess, setShowWithdrawSuccess] = useState(false);
+    const [earningsData, setEarningsData] = useState({
+        monthly: 3500000, total: 27800000,
+        history: [
+            { id: 1, date: '15 Jul 2024', student: 'Aulia Putri', class: 'Kalkulus Lanjut', amount: 150000 },
+            { id: 2, date: '14 Jul 2024', student: 'Budi Santoso', class: 'Aljabar Linear', amount: 125000 },
+            { id: 3, date: '12 Jul 2024', student: 'Citra Lestari', class: 'Dasar Pemrograman', amount: 150000 },
+        ]
+    });
     
+    // New state for calendar schedule and history
+    const [scheduleEvents, setScheduleEvents] = useState([
+        { id: 1, date: new Date(2025, 10, 12), subject: 'Kalkulus', student: 'Budi S.', startTime: '10:00', endTime: '12:00', mode: 'Online', location: 'zoom.link' },
+        { id: 2, date: new Date(2025, 10, 15), subject: 'Fisika', student: 'Citra L.', startTime: '13:00', endTime: '15:00', mode: 'Offline', location: 'Perpustakaan Kota' },
+        { id: 3, date: new Date(2025, 10, 15), subject: 'Aljabar', student: 'Dewi W.', startTime: '16:00', endTime: '17:00', mode: 'Online', location: 'meet.google.com' },
+    ]);
+    const [classHistory, setClassHistory] = useState([
+        { id: 1, date: '15 Jul 2024', student: 'Aulia Putri', class: 'Kalkulus Lanjut', earnings: 150000 },
+        { id: 2, date: '14 Jul 2024', student: 'Budi Santoso', class: 'Aljabar Linear', earnings: 125000 },
+        { id: 3, date: '12 Jul 2024', student: 'Citra Lestari', class: 'Dasar Pemrograman', earnings: 150000 },
+    ]);
+    const [isAddClassModalOpen, setIsAddClassModalOpen] = useState(false);
+    const [selectedDateForModal, setSelectedDateForModal] = useState(new Date());
+
+
+    const handleOpenAddClassModal = (date) => {
+        setSelectedDateForModal(date);
+        setIsAddClassModalOpen(true);
+    };
+
+    const handleAddClass = (classData) => {
+        const newClass = {
+            ...classData,
+            id: scheduleEvents.length + 1,
+            student: 'N/A', // Add placeholder since student name field is removed
+        };
+        setScheduleEvents(prev => [...prev, newClass]);
+    };
+
+    const handleConfirmWithdrawal = ({ amount }) => {
+        setEarningsData(prev => ({
+            ...prev,
+            total: prev.total - amount,
+            monthly: Math.max(0, prev.monthly - amount), 
+        }));
+        setIsWithdrawModalOpen(false);
+        setShowWithdrawSuccess(true);
+    };
+
     const handleAcceptRequest = (id) => {
         setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'Accepted' } : r));
     };
@@ -489,15 +741,6 @@ const TutorDashboardPage = ({ onNavigate, isLoggedIn, onLogout, activePage }) =>
     const classesToday = [
         { subject: "Dasar Pemrograman", time: "13:00 - 15:00", studentName: "Citra Lestari", mode: "Online", location: "https://zoom.us/j/12345", attendees: ["https://i.pravatar.cc/24?u=citra"] }
     ];
-
-    const earningsData = {
-        monthly: 3500000, total: 27800000,
-        history: [
-            { id: 1, date: '15 Jul 2024', student: 'Aulia Putri', class: 'Kalkulus Lanjut', amount: 150000 },
-            { id: 2, date: '14 Jul 2024', student: 'Budi Santoso', class: 'Aljabar Linear', amount: 125000 },
-            { id: 3, date: '12 Jul 2024', student: 'Citra Lestari', class: 'Dasar Pemrograman', amount: 150000 },
-        ]
-    };
 
     const renderContent = () => {
         switch (view) {
@@ -513,16 +756,14 @@ const TutorDashboardPage = ({ onNavigate, isLoggedIn, onLogout, activePage }) =>
                     </div>
                 );
             case 'schedule':
-                return <ScheduleView schedule={schedule} onAddAvailability={handleAddAvailability} onRemoveAvailability={handleRemoveAvailability} />;
+                return <ScheduleCalendarView events={scheduleEvents} onDayClick={handleOpenAddClassModal} />;
             case 'history':
-                return <div className="text-center p-8 bg-white/70 rounded-lg"><h2 className="text-xl font-bold">Riwayat Kelas</h2><p>Halaman ini sedang dalam pengembangan.</p></div>;
+                return <TutorClassHistoryView history={classHistory} />;
             case 'requests':
                 return <StudentRequests requests={requests} onAccept={handleAcceptRequest} onDecline={handleDeclineRequest} />;
             case 'earnings':
-                return <EarningsView earnings={earningsData} />;
-            case 'leaderboard':
-                return <div className="text-center p-8 bg-white/70 rounded-lg"><h2 className="text-xl font-bold">Peringkat</h2><p>Halaman ini sedang dalam pengembangan. Silakan kunjungi melalui navigasi utama.</p></div>;
-             case 'settings':
+                return <EarningsView earnings={earningsData} onOpenWithdrawModal={() => setIsWithdrawModalOpen(true)} />;
+            case 'settings':
                 return <TutorSettingsView />;
             default:
                 return null;
@@ -531,6 +772,22 @@ const TutorDashboardPage = ({ onNavigate, isLoggedIn, onLogout, activePage }) =>
 
     return (
         <div className="min-h-screen" style={{background: 'linear-gradient(to bottom right, #f3e8ff, #eef2ff, #faf5ff)'}}>
+            <WithdrawModal 
+                isOpen={isWithdrawModalOpen}
+                onClose={() => setIsWithdrawModalOpen(false)}
+                maxAmount={earningsData.total}
+                onConfirm={handleConfirmWithdrawal}
+            />
+            <AddClassModal 
+                 isOpen={isAddClassModalOpen}
+                 onClose={() => setIsAddClassModalOpen(false)}
+                 onAdd={handleAddClass}
+                 selectedDate={selectedDateForModal}
+             />
+            <WithdrawSuccessNotification 
+                show={showWithdrawSuccess} 
+                onClose={() => setShowWithdrawSuccess(false)} 
+            />
             <DashboardHeader onNavigate={onNavigate} isLoggedIn={isLoggedIn} onLogout={onLogout} activePage="dashboard" />
             <div className="flex h-screen pt-24">
                 <TutorSidebar onNavigate={onNavigate} view={view} setView={setView} />
@@ -541,5 +798,4 @@ const TutorDashboardPage = ({ onNavigate, isLoggedIn, onLogout, activePage }) =>
         </div>
     );
 };
-// FIX: Add default export to the component
 export default TutorDashboardPage;
