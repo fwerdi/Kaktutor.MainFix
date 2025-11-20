@@ -230,16 +230,15 @@ const Hero = ({ onSearchSubmit }) => {
                 </div>
                 {/* Right Column: Image Collage */}
                 <div className="hidden lg:block relative h-96 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=400" alt="Tutor 1" className="absolute w-48 h-64 object-cover rounded-xl shadow-2xl top-0 left-16 transform rotate-[-8deg] hover:rotate-[-2deg] hover:scale-105 transition-transform duration-300" />
-                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=400" alt="Tutor 2" className="absolute w-40 h-52 object-cover rounded-xl shadow-2xl bottom-8 right-8 transform rotate-[6deg] hover:rotate-[2deg] hover:scale-105 transition-transform duration-300" />
-                    <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400" alt="Tutor 3" className="absolute w-32 h-40 object-cover rounded-xl shadow-2xl top-16 right-24 transform rotate-[-4deg] hover:rotate-[0deg] hover:scale-105 transition-transform duration-300" />
-                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300" alt="Tutor 4" className="absolute w-36 h-48 object-cover rounded-xl shadow-2xl bottom-16 left-4 transform rotate-[10deg] hover:rotate-[5deg] hover:scale-105 transition-transform duration-300" />
+                    <img src="https://i.ibb.co.com/gkVKVGn/Whats-App-Image-2025-11-20-at-21-03-20-f6c03add.jpg" alt="Tutor 1" className="absolute w-48 h-64 object-cover rounded-xl shadow-2xl top-0 left-16 transform rotate-[-8deg] hover:rotate-[-2deg] hover:scale-105 transition-transform duration-300" />
+                    <img src="https://i.ibb.co.com/8LZ5BQvz/3.jpg" alt="Tutor 2" className="absolute w-40 h-52 object-cover rounded-xl shadow-2xl bottom-8 right-8 transform rotate-[6deg] hover:rotate-[2deg] hover:scale-105 transition-transform duration-300" />
+                    <img src="https://i.ibb.co.com/KjDHfVBn/2.jpg" alt="Tutor 3" className="absolute w-32 h-40 object-cover rounded-xl shadow-2xl top-16 right-24 transform rotate-[-4deg] hover:rotate-[0deg] hover:scale-105 transition-transform duration-300" />
+                    <img src="https://i.ibb.co.com/kgHrxZdn/4.jpg" alt="Tutor 4" className="absolute w-36 h-48 object-cover rounded-xl shadow-2xl bottom-16 left-4 transform rotate-[10deg] hover:rotate-[5deg] hover:scale-105 transition-transform duration-300" />
                 </div>
             </div>
         </section>
     );
-};
-
+}
 
 const HowItWorks = () => {
     const steps = [

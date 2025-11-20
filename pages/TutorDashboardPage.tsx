@@ -317,7 +317,7 @@ const ContentHeader = ({ setView }) => {
         <header className="flex justify-between items-center mb-6">
             <div>
                 <p className="text-gray-500">{dateString}</p>
-                <h1 className="text-4xl font-bold text-gray-800">Selamat datang kembali, Tuan Amba!</h1>
+                <h1 className="text-4xl font-bold text-gray-800">Selamat datang kembali, Sarkozy!</h1>
             </div>
             <div className="flex items-center gap-3">
                 <button

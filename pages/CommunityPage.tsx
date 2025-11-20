@@ -323,7 +323,7 @@ const CommunityPage = (props) => {
     ];
     
     const users = userRole === 'tutor' ? allTimeTutors : allTimeMentees;
-    const userName = userRole === 'tutor' ? 'Mr. Amba' : 'Citra Lestari';
+    const userName = userRole === 'tutor' ? 'Mr. Amba' : 'Sarkozy Arlert';
     const points = userRole === 'tutor' ? tutorPoints : menteePoints;
 
     return (
